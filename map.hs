@@ -6,7 +6,7 @@ module Map
 
 data Room = Room { number :: Int, connections :: [Int] }
 instance Show Room where
-    show r = "Room number: " ++ show (number r) ++ ", " ++ "Connected rooms: " ++ show (connections r)
+    show r = "Room number: " ++ show (number r) ++ ", " ++ "Connected rooms: " ++ show (connections r) ++ "\n"
 type Map = [Room]
 
 -- Argument provided must be 1
