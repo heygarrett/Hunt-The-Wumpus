@@ -2,7 +2,7 @@ module Map
     ( Map 
     , Room
     , generateMap
-    , getAdjacent
+    , listAdj
     ) where
 
 data Room = Room { number :: Int, connections :: [Int] }
@@ -17,5 +17,7 @@ generateMap x half
     | x == 1 = [Room 1 [2, 1 + half, 2 * half]]
     | otherwise = generateMap (x - 1) half ++ [Room x [x - 1, x + 1, x + half]]
 
-getAdjacent :: Int -> Map -> [Int]
-getAdjacent x y = connections $ y !! (x - 1)
+listAdj :: Int -> Map -> [Int]
+listAdj x y = connections $ y !! (x - 1)
+
+getSense :: Int -> Map -> String

@@ -1,6 +1,7 @@
 module Player
     ( Player
     , createPlayer
+    , getAdjRooms
     , currentLocation
     , movePlayer
     ) where
@@ -13,6 +14,9 @@ instance Show Player where
 
 createPlayer :: Int -> Int -> Int -> Player
 createPlayer x y z = Player x y z
+
+getAdjRooms :: Player -> Map -> [Int]
+getAdjRooms player map = listAdj (location player) map
 
 currentLocation :: Player -> Int
 currentLocation player = location player
