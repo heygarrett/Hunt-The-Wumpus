@@ -1,6 +1,6 @@
 module Map 
     ( Map 
-    , Room
+    , Room ( .. )
     , generateMap
     , listAdj
     ) where

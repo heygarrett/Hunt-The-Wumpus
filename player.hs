@@ -1,8 +1,7 @@
 module Player
-    ( Player
+    ( Player ( .. )
     , createPlayer
     , getAdjRooms
-    , currentLocation
     , movePlayer
     ) where
 
@@ -16,10 +15,7 @@ createPlayer :: Int -> Int -> Int -> Player
 createPlayer x y z = Player x y z
 
 getAdjRooms :: Player -> Map -> [Int]
-getAdjRooms player map = listAdj (location player) map
-
-currentLocation :: Player -> Int
-currentLocation player = location player
+getAdjRooms player map = connections $ map !! (location player - 1)
 
 -- |This function is not working correctly.
 movePlayer :: String -> Player -> Map -> Player

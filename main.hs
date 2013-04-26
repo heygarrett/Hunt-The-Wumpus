@@ -22,7 +22,7 @@ main = do
     forever $ do
         putStr "You are in room number " 
         hFlush stdout
-        print $ currentLocation thePlayer
+        print $ location thePlayer
         print thePlayer
         putStrLn "Would you like to go right, left, or back?"
         direction <- getLine
