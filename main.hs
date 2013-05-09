@@ -8,7 +8,7 @@ import Player
 
 main :: IO ()
 main = do
-    putStrLn "Number of rooms: "
+    putStrLn "How many rooms would you like the map to have? It must be an even number!"
     line <- fmap read getLine
     let theMap = generateMap line (div line 2)
     let thePlayer = Player 1 line 3
@@ -19,7 +19,7 @@ main = do
 gameLoop :: Player -> Map -> Wumpus -> IO ()
 gameLoop p m w = do
     checkForWumpus p m w
-    print $ show p
+    -- print $ show p
     putStrLn "Would you like to move or shoot?"
     line <- getLine
     if line == "move" then do

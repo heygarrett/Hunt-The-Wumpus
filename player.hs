@@ -44,7 +44,7 @@ movePlayer p m = do
 shootArrow ::  Player -> Wumpus -> IO Player
 shootArrow p w = do
     putStrLn "Would you like to shoot an arrow left, right or back?"
-    -- line <- getLine
+    line <- getLine
     putStrLn ("You have " ++ show (arrows p - 1) ++ " left in your quiver.")
     return $ Player (location p) (prevLoc p) (arrows p - 1)
     
@@ -53,5 +53,5 @@ checkForWumpus p m w =
     if wloc w `elem` getAdjRooms p m then
         putStrLn "There is a foul stench in the air..."
     else do
-        putStr ""
+        putStr "This room seems to be empty. "
         hFlush stdout
