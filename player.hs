@@ -22,7 +22,7 @@ movePlayer p m = do
     putStrLn "Would you like to go left, right, or back?"
     line <- getLine
     if line == "back" then
-        return $ Player (prevLoc p) (location p) (arrows p)
+        retujrn $ Player (prevLoc p) (location p) (arrows p)
     else if line == "left" then
         if prevLoc p == getAdjRooms p m !! 1 then
             return $ Player (maximum $ getAdjRooms p m) (location p) (arrows p)
@@ -42,9 +42,30 @@ movePlayer p m = do
         movePlayer p m
 
 shootArrow ::  Player -> Wumpus -> IO Player
-shootArrow p w = do
+shootArrow p m w = do
     putStrLn "Would you like to shoot an arrow left, right or back?"
     line <- getLine
+    if line == "left" then
+        if prevLoc p == getAdjRooms p m !! 1 then
+            if wloc w == maximum getAdjRooms p m then do
+                gameOver True
+            else do
+                putStr "You hear the clatter of your arrow in the next room. "
+                hFlush stdout
+        else if prevLoc p == getAdjRooms p m !! 0 then
+            if wloc w == getAdjRooms p m !! 1 then do
+                gameOver True
+            else do
+                putStr "You hear the clatter of your arrow in the next room. "
+                hFlush stdout
+        else
+            if wloc w == minimum getAdjRooms p m then do
+                gameOver True
+            else do
+                putStr "You hear the clatter of your arrow in the next room. "
+                hFlush stdout
+    else if line == "right" then
+
     putStrLn ("You have " ++ show (arrows p - 1) ++ " left in your quiver.")
     return $ Player (location p) (prevLoc p) (arrows p - 1)
     
