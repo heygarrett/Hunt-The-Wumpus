@@ -24,27 +24,35 @@ gameLoop p m w = do
     line <- getLine
     if line == "move" then do
         thePlayer <- movePlayer p m
-        gameLoop thePlayer m w
+        if location thePlayer == wloc w then
+            gameOver False
+        else
+            gameLoop thePlayer m w
     else if line == "shoot" then
         if arrows p /= 0 then do
-            thePlayer <- shootArrow p m w
-            gameLoop thePlayer m w
+            (thePlayer, b) <- shootArrow p m w
+            if b then
+                gameOver True
+            else
+                gameLoop thePlayer m w
         else do
             putStrLn "You do not have any arrows left in your quiver."
-            gameLoop p m w
+            gameOver False
     else do
         putStrLn "Sorry, that is not an option."
         gameLoop p m w
 
 gameOver :: Bool -> IO ()
-gameOver b = do
-    if b == True then do
+gameOver b =
+    if b then do
         putStrLn "There is a moaning sound in the next room before you hear something large crash to the ground. You killed the Wumpus! You win!"
         putStrLn "Would you like to play again? (yes/no)"
         line <- getLine
-        if line == "yes" then do
+        if line == "yes" then
             main
-        else if line == "no" then do
+        else if line == "no" then
             putStrLn "Thanks for playing!"
-        else do
+        else
             putStrLn "Lolwut."
+    else
+        putStrLn "You walked into room with the wumpus! He ate you. Oops."

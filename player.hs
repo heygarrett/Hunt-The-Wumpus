@@ -22,7 +22,7 @@ movePlayer p m = do
     putStrLn "Would you like to go left, right, or back?"
     line <- getLine
     if line == "back" then
-        retujrn $ Player (prevLoc p) (location p) (arrows p)
+        return $ Player (prevLoc p) (location p) (arrows p)
     else if line == "left" then
         if prevLoc p == getAdjRooms p m !! 1 then
             return $ Player (maximum $ getAdjRooms p m) (location p) (arrows p)
@@ -41,33 +41,50 @@ movePlayer p m = do
         putStrLn "Sorry, that isn't a direction."
         movePlayer p m
 
-shootArrow ::  Player -> Wumpus -> IO Player
+shootArrow ::  Player -> Map -> Wumpus -> IO (Player, Bool)
 shootArrow p m w = do
     putStrLn "Would you like to shoot an arrow left, right or back?"
     line <- getLine
     if line == "left" then
         if prevLoc p == getAdjRooms p m !! 1 then
-            if wloc w == maximum getAdjRooms p m then do
-                gameOver True
-            else do
-                putStr "You hear the clatter of your arrow in the next room. "
-                hFlush stdout
-        else if prevLoc p == getAdjRooms p m !! 0 then
-            if wloc w == getAdjRooms p m !! 1 then do
-                gameOver True
-            else do
-                putStr "You hear the clatter of your arrow in the next room. "
-                hFlush stdout
+            if wloc w == maximum (getAdjRooms p m) then
+                return (p, True)
+            else
+                miss p
+        else if prevLoc p == head (getAdjRooms p m) then
+            if wloc w == getAdjRooms p m !! 1 then
+                return (p, True)
+            else
+                miss p
         else
-            if wloc w == minimum getAdjRooms p m then do
-                gameOver True
-            else do
-                putStr "You hear the clatter of your arrow in the next room. "
-                hFlush stdout
+            if wloc w == minimum (getAdjRooms p m) then
+                return (p, True)
+            else
+                miss p
     else if line == "right" then
+        if prevLoc p == getAdjRooms p m !! 1 then
+            if wloc w == minimum (getAdjRooms p m) then
+                return (p, True)
+            else
+                miss p
+        else if prevLoc p == head (getAdjRooms p m) then
+            if wloc w == maximum (getAdjRooms p m) then
+                return (p, True)
+            else
+                miss p
+        else
+            if wloc w == getAdjRooms p m !! 1 then
+                return (p, True)
+            else
+                miss p
+    else
+        miss p
 
-    putStrLn ("You have " ++ show (arrows p - 1) ++ " left in your quiver.")
-    return $ Player (location p) (prevLoc p) (arrows p - 1)
+miss :: Player -> IO (Player, Bool)
+miss p = do
+    putStr ("You hear the clatter of your arrow in the next room. You have " ++ show (arrows p - 1) ++ " left in your quiver.")
+    hFlush stdout
+    return (Player (location p) (prevLoc p) (arrows p - 1), False)
     
 checkForWumpus :: Player -> Map -> Wumpus -> IO ()
 checkForWumpus p m w =
