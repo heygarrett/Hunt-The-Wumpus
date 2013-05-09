@@ -2,13 +2,18 @@ module Map
     ( Map 
     , Room ( .. )
     , generateMap
+    , Wumpus ( .. )
     ) where
 
+-- | Data types
 data Room = Room { number :: Int, connections :: [Int] }
 instance Show Room where
     show r = "Room number: " ++ show (number r) ++ ", " ++ "Connected rooms: " ++ show (connections r) ++ "\n"
 type Map = [Room]
     
+data Wumpus = Wumpus { wloc :: Int }
+
+-- | Map functions
 generateMap :: Int -> Int -> Map
 generateMap x half
     | x == (2 * half) = generateMap (x - 1) half ++ [Room x [1, x - half, x - 1]]

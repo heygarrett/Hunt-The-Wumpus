@@ -1,24 +1,57 @@
 module Player
     ( Player ( .. )
-    , createPlayer
     , getAdjRooms
     , movePlayer
+    , shootArrow
+    , checkForWumpus
     ) where
 
+import System.IO
 import Map
 
 data Player = Player { location :: Int, prevLoc :: Int, arrows :: Int } 
 instance Show Player where
-    show p = "Player location: " ++ show (location p) ++ ", " ++ "Previous location: " ++ show (prevLoc p) ++ ", " ++ "Arrows: " ++ show (arrows p) ++ "\n"
+    show p = "Player location: " ++ show (location p) ++ ", " ++ "Previous location: " ++ show (prevLoc p) ++ ", " ++ "Arrows: " ++ show (arrows p)
 
-createPlayer :: Int -> Int -> Int -> Player
-createPlayer x y z = Player x y z
-
+-- | Player functions
 getAdjRooms :: Player -> Map -> [Int]
-getAdjRooms player map = connections $ map !! (location player - 1)
+getAdjRooms p m = connections $ m !! (location p - 1)
 
--- |This function is not working correctly.
-movePlayer :: String -> Player -> Map -> Player
-movePlayer dir player map
-    | dir == "back" = Player (prevLoc player) (location player) (arrows player)
-    | otherwise = Player 50 50 50
+movePlayer :: Player -> Map -> IO Player
+movePlayer p m = do
+    putStrLn "Would you like to go left, right, or back?"
+    line <- getLine
+    if line == "back" then
+        return $ Player (prevLoc p) (location p) (arrows p)
+    else if line == "left" then
+        if prevLoc p == getAdjRooms p m !! 1 then
+            return $ Player (maximum $ getAdjRooms p m) (location p) (arrows p)
+        else if prevLoc p == getAdjRooms p m !! 2 then
+            return $ Player (minimum $ getAdjRooms p m) (location p) (arrows p)
+        else
+            return $ Player (getAdjRooms p m !! 1) (location p) (arrows p)
+    else if line == "right" then
+        if prevLoc p == getAdjRooms p m !! 1 then
+            return $ Player (minimum $ getAdjRooms p m) (location p) (arrows p)
+        else if prevLoc p == getAdjRooms p m !! 2 then
+            return $ Player (getAdjRooms p m !! 1) (location p) (arrows p)
+        else
+            return $ Player (maximum $ getAdjRooms p m) (location p) (arrows p)
+    else do
+        putStrLn "Sorry, that isn't a direction."
+        movePlayer p m
+
+shootArrow ::  Player -> Wumpus -> IO Player
+shootArrow p w = do
+    putStrLn "Would you like to shoot an arrow left, right or back?"
+    -- line <- getLine
+    putStrLn ("You have " ++ show (arrows p - 1) ++ " left in your quiver.")
+    return $ Player (location p) (prevLoc p) (arrows p - 1)
+    
+checkForWumpus :: Player -> Map -> Wumpus -> IO ()
+checkForWumpus p m w =
+    if wloc w `elem` getAdjRooms p m then
+        putStrLn "There is a foul stench in the air..."
+    else do
+        putStr ""
+        hFlush stdout
