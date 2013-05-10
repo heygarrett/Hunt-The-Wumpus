@@ -21,71 +21,49 @@ movePlayer :: Player -> Map -> IO Player
 movePlayer p m = do
     putStrLn "Would you like to go left, right, or back?"
     line <- getLine
-    if line == "back" then
-        return $ Player (prevLoc p) (location p) (arrows p)
-    else if line == "left" then
-        if prevLoc p == getAdjRooms p m !! 1 then
-            return $ Player (maximum $ getAdjRooms p m) (location p) (arrows p)
-        else if prevLoc p == getAdjRooms p m !! 2 then
-            return $ Player (minimum $ getAdjRooms p m) (location p) (arrows p)
-        else
-            return $ Player (getAdjRooms p m !! 1) (location p) (arrows p)
-    else if line == "right" then
-        if prevLoc p == getAdjRooms p m !! 1 then
-            return $ Player (minimum $ getAdjRooms p m) (location p) (arrows p)
-        else if prevLoc p == getAdjRooms p m !! 2 then
-            return $ Player (getAdjRooms p m !! 1) (location p) (arrows p)
-        else
-            return $ Player (maximum $ getAdjRooms p m) (location p) (arrows p)
-    else do
-        putStrLn "Sorry, that isn't a direction."
+    r <- getDirection line p m
+    if r == 0 then do
+        putStrLn "Sorry, that is not a direction."
         movePlayer p m
+    else
+        return $ Player r (location p) (arrows p)
 
 shootArrow ::  Player -> Map -> Wumpus -> IO (Player, Bool)
 shootArrow p m w = do
     putStrLn "Would you like to shoot an arrow left, right or back?"
     line <- getLine
-    if line == "left" then
-        if prevLoc p == getAdjRooms p m !! 1 then
-            if wloc w == maximum (getAdjRooms p m) then
-                return (p, True)
-            else
-                miss p
-        else if prevLoc p == head (getAdjRooms p m) then
-            if wloc w == getAdjRooms p m !! 1 then
-                return (p, True)
-            else
-                miss p
-        else
-            if wloc w == minimum (getAdjRooms p m) then
-                return (p, True)
-            else
-                miss p
-    else if line == "right" then
-        if prevLoc p == getAdjRooms p m !! 1 then
-            if wloc w == minimum (getAdjRooms p m) then
-                return (p, True)
-            else
-                miss p
-        else if prevLoc p == head (getAdjRooms p m) then
-            if wloc w == maximum (getAdjRooms p m) then
-                return (p, True)
-            else
-                miss p
-        else
-            if wloc w == getAdjRooms p m !! 1 then
-                return (p, True)
-            else
-                miss p
-    else
-        miss p
+    r <- getDirection line p m
+    if r == 0 then do
+        putStrLn "Sorry, that's not a direction."
+        shootArrow p m w
+    else if wloc w == r then
+        return (p, True)
+    else do
+        putStr ("You hear the clatter of your arrow in the next room. You have " ++ show (arrows p - 1) ++ " left in your quiver. ")
+        hFlush stdout
+        return (Player (location p) (prevLoc p) (arrows p - 1), False)
 
-miss :: Player -> IO (Player, Bool)
-miss p = do
-    putStr ("You hear the clatter of your arrow in the next room. You have " ++ show (arrows p - 1) ++ " left in your quiver.")
-    hFlush stdout
-    return (Player (location p) (prevLoc p) (arrows p - 1), False)
-    
+getDirection ::  String -> Player -> Map -> IO Int
+getDirection s p m = 
+    if s == "back" then
+        return $ prevLoc p
+    else if s == "left" then
+        if prevLoc p == getAdjRooms p m !! 1 then
+            return $ maximum (getAdjRooms p m)
+        else if prevLoc p == head (getAdjRooms p m) then
+            return $ getAdjRooms p m !! 1
+        else
+            return $ minimum (getAdjRooms p m)
+    else if s == "right" then
+        if prevLoc p == getAdjRooms p m !! 1 then
+            return $ minimum (getAdjRooms p m)
+        else if prevLoc p == head (getAdjRooms p m) then
+            return $ maximum (getAdjRooms p m)
+        else
+            return $ getAdjRooms p m !! 1
+    else
+        return 0
+
 checkForWumpus :: Player -> Map -> Wumpus -> IO ()
 checkForWumpus p m w =
     if wloc w `elem` getAdjRooms p m then
