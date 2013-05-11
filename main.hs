@@ -33,9 +33,9 @@ gameLoop p m w = do
             putStrLn "There is a foul stench in the air..."
             gameAction p m w
         else if result == 1 
-            then gameOver (False, 0)
-        else if result == 2
             then gameOver (False, 1)
+        else if result == 2
+            then gameOver (False, 2)
         else do
             putStrLn "This room appears to be empty."
             gameAction p m w
@@ -73,10 +73,10 @@ gameOver (b, i) = do
         if b 
             then "There is a moaning sound in the next room before you hear something large crash to the ground. You killed the Wumpus! You win!" 
             else 
-                if i == 0 
+                if i == 1 
                     then
                         "You walked into room with the wumpus! He ate you. Oops."
-                    else if i == 1 
+                    else if i == 2 
                         then "The Wumpus must have been scared by the sound of your arrow because he wondered into your room and ate you! Oops."
                     else
                         "You ran out of arrows! Game over!")
