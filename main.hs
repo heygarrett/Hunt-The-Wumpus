@@ -1,7 +1,9 @@
 module Main 
     ( main
+    , startOver
     ) where
 
+import System.Exit
 import System.IO
 import System.Random
 import Map
@@ -28,56 +30,62 @@ main = do
 gameLoop :: Player -> Map -> Wumpus -> IO ()
 gameLoop p m w = do
     result <- checkForWumpus p m w
-    if result == 2 then do
-        putStr ""
-        hFlush stdout
-    else if result == 0 then
-        gameOver (False, 0)
-    else
-        gameOver (False, 1)
+    if result == 0 
+        then putStrLn "There is a foul stench in the air..."
+        else if result == 1 
+            then gameOver (False, 0)
+        else if result == 2
+            then gameOver (False, 1)
+        else
+            putStrLn "This room appears to be empty."
     putStrLn "Would you like to move or shoot and in which direction? (move/shoot) (right/left/back)"
     line <- getLine
     let actions = words line
-    if head actions == "move" then do
-        thePlayer <- movePlayer (last actions) p m
-        if location thePlayer == wloc w then
-            gameOver (False, 0)
-        else
-            gameLoop thePlayer m w
-    else if head actions == "shoot" then do
-        (thePlayer, b) <- shootArrow (last actions) p m w
-        if b then
-            gameOver (True, 0)
-        else if arrows thePlayer == 0 then
-            gameOver (False, 2)
+    if head actions == "move" 
+        then do
+            thePlayer <- movePlayer (last actions) p m
+            if location thePlayer == wloc w then
+                gameOver (False, 0)
+            else
+                gameLoop thePlayer m (Wumpus (wloc w) 0)
+        else if head actions == "shoot"
+            then do
+                (thePlayer, b) <- shootArrow (last actions) p m w
+                if b 
+                    then
+                        gameOver (True, 0)
+                    else if arrows thePlayer == 0 then
+                        gameOver (False, 2)
+                    else do
+                        movW <- randomRIO (0, 2)
+                        gameLoop thePlayer m (Wumpus (connections (m !! (wloc w - 1)) !! movW) 1)
         else do
-            movW <- randomRIO (0, 2)
-            gameLoop thePlayer m (Wumpus (connections (m !! (wloc w - 1)) !! movW) 1)
-    else do
-        putStrLn "Sorry, that is not an option."
-        gameLoop p m w
+            putStrLn "Sorry, that is not an option."
+            gameLoop p m (Wumpus (wloc w) 0)
 
 gameOver :: (Bool, Int) -> IO ()
 gameOver (b, i) = do
-    if b then 
-        putStrLn "There is a moaning sound in the next room before you hear something large crash to the ground. You killed the Wumpus! You win!" 
-    else 
-        if i == 0 then
-            putStrLn "You walked into room with the wumpus! He ate you. Oops."
-        else if i == 1 then
-            putStrLn "The Wumpus must have been scared by the sound of your arrow because he wondered into your room and ate you! Oops."
-        else
-            putStrLn "You ran out of arrows! Game over!"
+    if b 
+        then 
+            putStrLn "There is a moaning sound in the next room before you hear something large crash to the ground. You killed the Wumpus! You win!" 
+        else 
+            putStrLn (if i == 0 
+                then
+                    "You walked into room with the wumpus! He ate you. Oops."
+                else if i == 1 then
+                    "The Wumpus must have been scared by the sound of your arrow because he wondered into your room and ate you! Oops."
+                else
+                    "You ran out of arrows! Game over!")
     startOver
 
 startOver :: IO ()
 startOver = do
     putStrLn "Would you like to play again? (yes/no)"
     line <- getLine
-    if line == "yes" then
-        main
-    else if line == "no" then
-        putStrLn "Thanks for playing!"
-    else do
-        putStrLn "Sorry, that's not an aption."
-        startOver
+    if line == "yes"
+        then main
+        else if line == "no" 
+            then putStrLn "Thanks for playing!"
+        else do
+            putStrLn "Sorry, that's not an aption."
+            startOver
