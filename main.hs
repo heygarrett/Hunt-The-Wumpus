@@ -35,7 +35,7 @@ gameLoop p m w = do
         gameOver (False, 0)
     else
         gameOver (False, 1)
-    putStrLn "Would you like to move or shoot and in which direction?"
+    putStrLn "Would you like to move or shoot and in which direction? (move/shoot) (right/left/back)"
     line <- getLine
     let actions = words line
     if head actions == "move" then do
