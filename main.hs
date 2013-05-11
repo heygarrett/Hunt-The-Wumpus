@@ -2,6 +2,7 @@ module Main
     ( main
     ) where
 
+import System.IO
 import System.Random
 import Map
 import Player
@@ -9,45 +10,64 @@ import Player
 main :: IO ()
 main = do
     putStrLn "Welcome to Hunt the Wumpus!"
-    putStrLn "You're job is to shoot the Wumpus with an arrow!"
-    putStrLn "But be careful, if you walk into the room with the Wumpus, he'll eat you!"
-    putStrLn "If you smell the Wumpus, it means he's in an adjacent room."
-    putStrLn "How many rooms would you like the map to have? It must be an even number (at least 4)!"
-    line <- fmap read getLine
-    let theMap = generateMap line (div line 2)
-    let thePlayer = Player 1 line 3
-    loc <- randomRIO (2, line)
-    let theWumpus = Wumpus loc
+    putStrLn "When you start the game, you will be placed in a map "
+    putStrLn "with the number of rooms of your choosing. "
+    putStrLn "Each room is connected to three other rooms via dark hallways, "
+    putStrLn "so in any given room, there will be three directions: "
+    putStrLn "right, left, and back. "
+    putStrLn "You're job is to shoot the Wumpus with an arrow! "
+    putStrLn "But be careful, if you walk into the room with the Wumpus, he'll eat you! "
+    putStrLn "If you smell the Wumpus, it means he's in an adjacent room. "
+    n <- numberRooms
+    let theMap = generateMap n (div n 2)
+    let thePlayer = Player 1 n 3
+    loc <- randomRIO (2, n)
+    let theWumpus = Wumpus loc 0
     gameLoop thePlayer theMap theWumpus
 
 gameLoop :: Player -> Map -> Wumpus -> IO ()
 gameLoop p m w = do
-    checkForWumpus p m w
-    putStrLn "Would you like to move or shoot?"
+    result <- checkForWumpus p m w
+    if result == 2 then do
+        putStr ""
+        hFlush stdout
+    else if result == 0 then
+        gameOver (False, 0)
+    else
+        gameOver (False, 1)
+    putStrLn "Would you like to move or shoot and in which direction?"
     line <- getLine
-    if line == "move" then do
-        thePlayer <- movePlayer p m
+    let actions = words line
+    if head actions == "move" then do
+        thePlayer <- movePlayer (last actions) p m
         if location thePlayer == wloc w then
-            gameOver False
+            gameOver (False, 0)
         else
             gameLoop thePlayer m w
-    else if line == "shoot" then
-        if arrows p /= 0 then do
-            (thePlayer, b) <- shootArrow p m w
-            if b then
-                gameOver True
-            else
-                gameLoop thePlayer m w
+    else if head actions == "shoot" then do
+        (thePlayer, b) <- shootArrow (last actions) p m w
+        if b then
+            gameOver (True, 0)
+        else if arrows thePlayer == 0 then
+            gameOver (False, 2)
         else do
-            putStrLn "You do not have any arrows left in your quiver."
-            gameOver False
+            movW <- randomRIO (0, 2)
+            gameLoop thePlayer m (Wumpus (connections (m !! (wloc w - 1)) !! movW) 1)
     else do
         putStrLn "Sorry, that is not an option."
         gameLoop p m w
 
-gameOver :: Bool -> IO ()
-gameOver b = do
-    putStrLn (if b then "There is a moaning sound in the next room before you hear something large crash to the ground. You killed the Wumpus! You win!" else "You walked into room with the wumpus! He ate you. Oops.")
+gameOver :: (Bool, Int) -> IO ()
+gameOver (b, i) = do
+    if b then 
+        putStrLn "There is a moaning sound in the next room before you hear something large crash to the ground. You killed the Wumpus! You win!" 
+    else 
+        if i == 0 then
+            putStrLn "You walked into room with the wumpus! He ate you. Oops."
+        else if i == 1 then
+            putStrLn "The Wumpus must have been scared by the sound of your arrow because he wondered into your room and ate you! Oops."
+        else
+            putStrLn "You ran out of arrows! Game over!"
     startOver
 
 startOver :: IO ()

@@ -11,31 +11,31 @@ import Map
 
 data Player = Player { location :: Int, prevLoc :: Int, arrows :: Int } 
 instance Show Player where
-    show p = "Player location: " ++ show (location p) ++ ", " ++ "Previous location: " ++ show (prevLoc p) ++ ", " ++ "Arrows: " ++ show (arrows p)
+    show p = "Player location: " ++ show (location p) ++ ", " ++ "previous location: " ++ show (prevLoc p) ++ ", " ++ "arrows: " ++ show (arrows p)
 
 -- | Player functions
 getAdjRooms :: Player -> Map -> [Int]
 getAdjRooms p m = connections $ m !! (location p - 1)
 
-movePlayer :: Player -> Map -> IO Player
-movePlayer p m = do
-    putStrLn "Would you like to go left, right, or back?"
-    line <- getLine
-    r <- getDirection line p m
+movePlayer :: String -> Player -> Map -> IO Player
+movePlayer s p m = do
+    r <- getDirection s p m
     if r == 0 then do
         putStrLn "Sorry, that is not a direction."
-        movePlayer p m
+        putStrLn "Which direction would you like to move?"
+        line <- getLine
+        movePlayer line p m 
     else
         return $ Player r (location p) (arrows p)
 
-shootArrow ::  Player -> Map -> Wumpus -> IO (Player, Bool)
-shootArrow p m w = do
-    putStrLn "Would you like to shoot an arrow left, right or back?"
-    line <- getLine
-    r <- getDirection line p m
+shootArrow :: String -> Player -> Map -> Wumpus -> IO (Player, Bool)
+shootArrow s p m w = do
+    r <- getDirection s p m
     if r == 0 then do
         putStrLn "Sorry, that's not a direction."
-        shootArrow p m w
+        putStrLn "Which direction would you like to shoot?"
+        line <- getLine
+        shootArrow line p m w
     else if wloc w == r then
         return (p, True)
     else do
@@ -45,7 +45,9 @@ shootArrow p m w = do
 
 getDirection ::  String -> Player -> Map -> IO Int
 getDirection s p m = 
-    if s == "back" then
+    if s == "" then
+        return 7
+    else if s == "back" then
         return $ prevLoc p
     else if s == "left" then
         if prevLoc p == getAdjRooms p m !! 1 then
@@ -64,10 +66,17 @@ getDirection s p m =
     else
         return 0
 
-checkForWumpus :: Player -> Map -> Wumpus -> IO ()
+checkForWumpus :: Player -> Map -> Wumpus -> IO Int
 checkForWumpus p m w =
-    if wloc w `elem` getAdjRooms p m then
+    if wloc w `elem` getAdjRooms p m then do
         putStrLn "There is a foul stench in the air..."
+        return 2
+    else if wloc w == location p then
+        if moved w == 0 then
+            return 0
+        else
+            return 1
     else do
         putStr "This room seems to be empty. "
         hFlush stdout
+        return 2
