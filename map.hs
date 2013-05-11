@@ -21,15 +21,15 @@ numberRooms = do
     putStrLn "What size would you like your map? "
     putStrLn "(small/medium/large)"
     line <- getLine
-    if line == "small" then
-        return 6
-    else if line == "medium" then
-        return 12
-    else if line == "large" then
-        return 20
-    else do
-        putStrLn "Sorry, but that's not a map size! "
-        numberRooms
+    if line == "small" 
+        then return 6
+        else if line == "medium" 
+            then return 12
+        else if line == "large" 
+            then return 20
+        else do
+            putStrLn "Sorry, but that's not a map size! "
+            numberRooms
 
 generateMap :: Int -> Int -> Map
 generateMap x half

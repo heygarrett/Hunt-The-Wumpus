@@ -1,9 +1,7 @@
 module Main 
     ( main
-    , startOver
     ) where
 
-import System.Exit
 import System.IO
 import System.Random
 import Map
@@ -31,13 +29,19 @@ gameLoop :: Player -> Map -> Wumpus -> IO ()
 gameLoop p m w = do
     result <- checkForWumpus p m w
     if result == 0 
-        then putStrLn "There is a foul stench in the air..."
+        then do 
+            putStrLn "There is a foul stench in the air..."
+            gameAction p m w
         else if result == 1 
             then gameOver (False, 0)
         else if result == 2
             then gameOver (False, 1)
-        else
+        else do
             putStrLn "This room appears to be empty."
+            gameAction p m w
+
+gameAction :: Player -> Map -> Wumpus -> IO ()
+gameAction p m w = do
     putStrLn "Would you like to move or shoot and in which direction? (move/shoot) (right/left/back)"
     line <- getLine
     let actions = words line
@@ -65,17 +69,17 @@ gameLoop p m w = do
 
 gameOver :: (Bool, Int) -> IO ()
 gameOver (b, i) = do
-    if b 
-        then 
-            putStrLn "There is a moaning sound in the next room before you hear something large crash to the ground. You killed the Wumpus! You win!" 
-        else 
-            putStrLn (if i == 0 
-                then
-                    "You walked into room with the wumpus! He ate you. Oops."
-                else if i == 1 then
-                    "The Wumpus must have been scared by the sound of your arrow because he wondered into your room and ate you! Oops."
-                else
-                    "You ran out of arrows! Game over!")
+    putStrLn (
+        if b 
+            then "There is a moaning sound in the next room before you hear something large crash to the ground. You killed the Wumpus! You win!" 
+            else 
+                if i == 0 
+                    then
+                        "You walked into room with the wumpus! He ate you. Oops."
+                    else if i == 1 
+                        then "The Wumpus must have been scared by the sound of your arrow because he wondered into your room and ate you! Oops."
+                    else
+                        "You ran out of arrows! Game over!")
     startOver
 
 startOver :: IO ()
