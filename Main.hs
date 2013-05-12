@@ -1,6 +1,4 @@
-module Main 
-    ( main
-    ) where
+module Main where
 
 import System.IO
 import System.Random
@@ -48,10 +46,11 @@ gameAction p m w = do
     if head actions == "move" 
         then do
             thePlayer <- movePlayer (last actions) p m
-            if location thePlayer == wloc w then
-                gameOver (False, 0)
-            else
-                gameLoop thePlayer m (Wumpus (wloc w) 0)
+            if location thePlayer == wloc w 
+                then
+                    gameOver (False, 0)
+                else
+                    gameLoop thePlayer m (Wumpus (wloc w) 0)
         else if head actions == "shoot"
             then do
                 (thePlayer, b) <- shootArrow (last actions) p m w
